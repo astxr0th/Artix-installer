@@ -71,6 +71,20 @@ if [ -n "$WIFI_SSID" ]; then
     echo ""
 fi
 
+echo ""
+echo "Optional window manager/session choices:"
+echo "- ly will be installed automatically"
+echo "Select any of these to install in addition to ly:"
+echo "1) halley"
+echo "2) mango"
+echo "3) river"
+echo "4) halley + mango"
+echo "5) halley + river"
+echo "6) mango + river"
+echo "7) halley + mango + river"
+echo "8) none (ly only)"
+read -p "Choice [1-8]: " WM_CHOICE
+
 
 # 2. AUTO-DETECT PARTITIONS & HARDWARE
 
@@ -84,7 +98,7 @@ else
     ROOT_PART="${DISK}3"
 fi
 
-EXTRA_PKGS="base base-devel linux linux-firmware $INIT_SYS elogind-$INIT_SYS networkmanager networkmanager-$INIT_SYS wpa_supplicant grub efibootmgr nano vim git parted"
+EXTRA_PKGS="base base-devel linux linux-firmware $INIT_SYS elogind-$INIT_SYS networkmanager networkmanager-$INIT_SYS wpa_supplicant grub efibootmgr nano vim git parted ly"
 
 if [ "$FS_CHOICE" == "btrfs" ]; then EXTRA_PKGS+=" btrfs-progs"; fi
 if [ "$FS_CHOICE" == "xfs" ]; then EXTRA_PKGS+=" xfsprogs"; fi
@@ -97,6 +111,18 @@ case "$GPU_CHOICE" in
     2) EXTRA_PKGS+=" mesa xf86-video-intel" ;;
     3) EXTRA_PKGS+=" nvidia-dkms dkms libva-nvidia-driver nvidia-utils linux-headers" ;;
     *) echo "No specific GPU drivers selected. Using kernel defaults." ;;
+esac
+
+case "$WM_CHOICE" in
+    1) EXTRA_PKGS+=" halley" ;;
+    2) EXTRA_PKGS+=" mango" ;;
+    3) EXTRA_PKGS+=" river" ;;
+    4) EXTRA_PKGS+=" halley mango" ;;
+    5) EXTRA_PKGS+=" halley river" ;;
+    6) EXTRA_PKGS+=" mango river" ;;
+    7) EXTRA_PKGS+=" halley mango river" ;;
+    8) ;;
+    *) echo "ERROR: Invalid optional package choice."; exit 1 ;;
 esac
 
 echo ""
@@ -175,9 +201,10 @@ echo "[5/6] Entering chroot to configure the system..."
 # Ensure optional variables are at least defined as empty strings so declare -p doesn't fail
 WIFI_SSID="${WIFI_SSID:-}"
 WIFI_PASSWORD="${WIFI_PASSWORD:-}"
+WM_CHOICE="${WM_CHOICE:-8}"
 
 # Safely serialize variables to prevent script injection/corruption via special characters
-declare -p HOSTNAME USERNAME PASSWORD TIMEZONE KEYMAP WIFI_SSID WIFI_PASSWORD INIT_SYS > /mnt/root/install_vars.sh
+declare -p HOSTNAME USERNAME PASSWORD TIMEZONE KEYMAP WIFI_SSID WIFI_PASSWORD INIT_SYS WM_CHOICE > /mnt/root/install_vars.sh
 
 # Quoted 'EOF' ensures variables are evaluated SAFELY by the chroot, not the parent shell
 artix-chroot /mnt /bin/bash <<'EOF'
