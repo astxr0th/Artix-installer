@@ -27,4 +27,4 @@ The script automatically formats the selected disk using the following layout:
 
 1. **Download the script:**
    ```bash
-   curl -O [https://raw.githubusercontent.com/astxr0th/Artix-install/main/installerv2.sh](https://raw.githubusercontent.com/astxr0th/Artix-install/main/installerv2.sh)
+   curl -O https://raw.githubusercontent.com/astxr0th/Artix-install/main/installerv2.sh
