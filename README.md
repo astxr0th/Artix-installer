@@ -1,7 +1,7 @@
 
 # Artix Linux Interactive Installer (Dinit)
 
-A streamlined, interactive bash script for quickly installing **Artix Linux** with the **dinit** init system. This script automates partitioning, formatting, bootstrapping the base system, and configuring network settings (including Wi-Fi) directly from the command line.
+Interactive bash script for quickly installing **Artix Linux** with the **dinit** init system. It automates partitioning, formatting, bootstrapping the base system, and configuring network settings (including wifi) directly from the command line.
 
 ## Features
 
