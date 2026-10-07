@@ -1,6 +1,7 @@
 #!/bin/bash
-# Interactive Artix Linux Advanced Install Script
-# Features: Failsafes, HW Optimization, Init Choice, FS Choice, Auto-Wi-Fi, Paru, Ly (Dynamic Init), Wayland Compositors, Doas
+# Interactive Artix Linux installer.
+# Wipes the target disk, installs a base system with your choice of init and filesystem,
+# and sets up doas, paru, ly and (optionally) Wi-Fi and a Wayland compositor.
 
 set -e
 
@@ -21,6 +22,9 @@ if [ ! -b "$DISK" ]; then
     echo "ERROR: Disk $DISK does not exist!"
     exit 1
 fi
+lsblk "$DISK"
+read -p "Everything on $DISK will be erased. Type YES to continue: " CONFIRM
+[ "$CONFIRM" == "YES" ] || { echo "Aborted."; exit 1; }
 
 read -p "Filesystem for root (ext4, xfs, btrfs) [ext4]: " FS_CHOICE
 FS_CHOICE=${FS_CHOICE:-ext4}
@@ -59,7 +63,7 @@ if [ -n "$WIFI_SSID" ]; then
 fi
 
 # 2. PARTITIONING & FORMATTING
-echo "[1/6] Partitioning and formatting disk $DISK..."
+echo "[1/3] Partitioning and formatting disk $DISK..."
 umount -R /mnt 2>/dev/null || true
 sgdisk -Z "$DISK"
 sgdisk -n 1:0:+512M -t 1:ef00 -c 1:"EFI System Partition" "$DISK"
@@ -101,12 +105,12 @@ mkdir -p /mnt/boot/efi
 mount "${PART_PREFIX}1" /mnt/boot/efi
 
 # 3. BASE INSTALLATION
-echo "[2/6] Installing Base System..."
+echo "[2/3] Installing Base System..."
 basestrap /mnt base base-devel linux linux-firmware artix-keyring "$INIT_SYS" "elogind-$INIT_SYS" nano networkmanager "networkmanager-$INIT_SYS" grub efibootmgr git rust zig pam xcb-util libxcb opendoas mesa polkit foot
 fstabgen -U /mnt >> /mnt/etc/fstab
 
 # 4. CHROOT CONFIGURATION
-echo "[4/6] Configuring system inside chroot..."
+echo "[3/3] Configuring system inside chroot..."
 cat <<'EOF' > /mnt/setup_chroot.sh
 #!/bin/bash
 set -e
@@ -157,7 +161,7 @@ chmod +x /mnt/setup_chroot.sh
 artix-chroot /mnt /setup_chroot.sh "$HOSTNAME" "$USERNAME" "$PASSWORD" "$INIT_SYS" "$COMPOSITOR" "$WIFI_SSID" "$WIFI_PASS"
 rm /mnt/setup_chroot.sh
 
-# 6. WRAP UP
+# 5. WRAP UP
 trap - ERR
 umount -R /mnt 2>/dev/null
 swapoff -a 2>/dev/null
